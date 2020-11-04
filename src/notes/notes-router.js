@@ -10,7 +10,8 @@ const serializeNote = note => ({
     id: note.id,
     note_name: xss(note.note_name),
     date_modified: note.date_modified,
-    note_content: xss(note.note_content)
+    note_content: xss(note.note_content),
+    folder_id: note.folder_id
 })
 
 notesRouter
@@ -24,6 +25,8 @@ notesRouter
             .catch(next)
     })
     .post(jsonParser, (req, res, next) => {
+        console.log('test');
+        console.log(req.body);
         const { note_name, date_modified, note_content, folder_id } = req.body
         const newNote = { note_name, date_modified, note_content, folder_id }
 
@@ -37,17 +40,17 @@ notesRouter
             req.app.get('db'),
             newNote
         )
-            .then(Note => {
+            .then(note => {
                 res
                     .status(201)
                     .location(path.posix.join(req.originalUrl, `/${note.id}`))
-                    .json(Note(note))
+                    .json(note)
             })
             .catch(next)
     })
 
 notesRouter
-    .route('/notes/:note_id')
+    .route('/:note_id')
     .all((req, res, next) => {
         NotesService.getById(
             req.app.get('db'),
@@ -78,8 +81,8 @@ notesRouter
             .catch(next)
     })
     .patch(jsonParser, (req, res, next) => {
-        const { note_name, date_modified, note_content, folder_id } = req.body
-        const noteToUpdate = { note_name, date_modified, note_content, folder_id }
+        const { note_name, /* date_modified, */ note_content, folder_id } = req.body
+        const noteToUpdate = { note_name, /* date_modified, */ note_content, folder_id }
 
         const numberOfValues = Object.values(noteToUpdate).filter(Boolean).length
         if (numberOfValues === 0)
